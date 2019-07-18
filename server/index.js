@@ -5,7 +5,7 @@ var mysql = require("mysql");
 var bcrypt = require("bcrypt");
 
 // load .env into device env.
-require('dotenv').config()
+require("dotenv").config();
 
 var app = express();
 
@@ -17,6 +17,8 @@ var connection = mysql.createConnection({
   database: process.env.DB_DATABASE
 });
 
+connection.connect();
+
 function verifyJWTMiddleware(req, resp, next) {
   const token = req.header("Authorization");
   if (token == "" || token.length < 8) {
@@ -25,21 +27,20 @@ function verifyJWTMiddleware(req, resp, next) {
       .send({ message: "ERROR: Missing token or token is to short!" });
     return;
   }
-  var tokenHeader = jwt.verify(token.substring(7), process.env.JWT_PASSSWORD, function(
-    err,
-    decoded
-  ) {
-    if (decoded) next();
-    else if (err) resp.status(500).send({ message: err });
-    else {
-      resp.status(401).send({ message: "ERROR: User not logged in!" });
+
+  jwt.verify(
+    token.substring(7),
+    process.env.JWT_PASSWORD,
+    function(err, decoded) {
+      if (decoded) next();
+      else if (process.env.JWT_PASSWORD) {
+        resp.status(500).send({ message: err });
+      } else {
+        resp.status(401).send({ message: "ERROR: User not logged in!" });
+      }
     }
-  });
+  );
 }
-
-connection.connect();
-
-app.use(bodyParser.json());
 
 const hasAllProperties = (obj, props) => {
   for (let i = 0; i < props.length; i++) {
@@ -51,8 +52,6 @@ const hasAllProperties = (obj, props) => {
 };
 
 function handleRegister(req, resp) {
-  // Get JSON
-
   if (
     !hasAllProperties(req.body, [
       "username",
@@ -109,18 +108,20 @@ function handleLogin(req, resp) {
         resp.status(400).send({ message: "ERROR: Invalid credentials!" });
       } else {
         // generate JWT
-        const token = jwt.sign({ username: req.body.username }, process.env.JWT_PASSWORD, {
-          expiresIn: "24h"
-        });
+        const token = jwt.sign(
+          { username: req.body.username },
+          process.env.JWT_PASSWORD,
+          {
+            expiresIn: "24h"
+          }
+        );
         resp.send({ token: token });
       }
     }
   );
 }
 
-// If a customer wants to send a package
 function handleSend(req, resp) {
-  // get username from url
   var username = req.params["username"];
   if (
     !hasAllProperties(req.body, [
@@ -336,6 +337,25 @@ function handleChangeStateNotAvailable(req, resp) {
   );
 }
 
+function handleGetWaitingPackets(req, resp) {
+  connection.query(
+    `SELECT * FROM packet WHERE status='waiting'`,
+    (err, result) => {
+      if (err) {
+        resp.status(500).send({ message: err });
+      } else {
+        resp.send(result);
+      }
+    }
+  );
+}
+
+app.use(bodyParser.json());
+
+app.post("/register", handleRegister);
+app.post("/login", handleLogin);
+
+// protected routes
 app.post(
   "/status/:username/available",
   verifyJWTMiddleware,
@@ -348,12 +368,11 @@ app.post(
 );
 
 app.get("/packet/:id", verifyJWTMiddleware, handleGetPacket);
+
 app.get("/packet", verifyJWTMiddleware, handleGetPackets);
 
-app.post("/register", handleRegister);
-app.post("/login", handleLogin);
+app.get("/packet/status/waiting", verifyJWTMiddleware, handleGetWaitingPackets);
 
-// protected routes
 app.post("/customer/:username/send", verifyJWTMiddleware, handleSend);
 
 app.post(
@@ -363,8 +382,7 @@ app.post(
 );
 app.post("/driver/delivered", verifyJWTMiddleware, handleDelivered);
 
+// server start --> Port 3000
 app.listen(3000, function() {
   console.log("Serving...(Port: 3000)");
 });
-
-//connection.end();
