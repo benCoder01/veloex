@@ -135,15 +135,15 @@ GET /packet/{id}
 {
 	"username": "benedikt",
 	"name": "Benedikt Ricken",
-	"email": "benedikt-ricken@gmx.de",
+	"email": "example@example.de",
 	"password": "11234",
 	"driver": true,
 	"address": {
-		"nomen": "Benedikt Ricken",
-		"street": "Kreuzberegweg",
+		"nomen": "Max Mustermann",
+		"street": "Musterstraße",
 		"number": "18",
-		"zip": "53115",
-		"city": "Bonn"
+		"zip": "11111",
+		"city": "Musterstadt"
 		
 	}
 }
