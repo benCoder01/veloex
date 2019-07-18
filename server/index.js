@@ -4,28 +4,37 @@ var jwt = require("jsonwebtoken");
 var mysql = require("mysql");
 var bcrypt = require("bcrypt");
 
+// load .env into device env.
+require('dotenv').config()
+
 var app = express();
 
 var connection = mysql.createConnection({
   host: "192.168.17.4",
   port: "3306",
-  user: "root",
+  user: process.env.DB_USER,
   password: "",
-  database: "test"
+  database: process.env.DB_DATABASE
 });
 
 function verifyJWTMiddleware(req, resp, next) {
-  var tokenHeader = jwt.verify(
-    req.header("Authorization").substring(7),
-    "STRING",
-    function(err, decoded) {
-      if (decoded) next();
-      else if (err) resp.status(500).send({ message: err });
-      else {
-        resp.status(401).send({ message: "ERROR: User not logged in!" });
-      }
+  const token = req.header("Authorization");
+  if (token == "" || token.length < 8) {
+    resp
+      .status(400)
+      .send({ message: "ERROR: Missing token or token is to short!" });
+    return;
+  }
+  var tokenHeader = jwt.verify(token.substring(7), process.env.JWT_PASSSWORD, function(
+    err,
+    decoded
+  ) {
+    if (decoded) next();
+    else if (err) resp.status(500).send({ message: err });
+    else {
+      resp.status(401).send({ message: "ERROR: User not logged in!" });
     }
-  );
+  });
 }
 
 connection.connect();
@@ -100,7 +109,7 @@ function handleLogin(req, resp) {
         resp.status(400).send({ message: "ERROR: Invalid credentials!" });
       } else {
         // generate JWT
-        const token = jwt.sign({ username: req.body.username }, "STRING", {
+        const token = jwt.sign({ username: req.body.username }, process.env.JWT_PASSWORD, {
           expiresIn: "24h"
         });
         resp.send({ token: token });
