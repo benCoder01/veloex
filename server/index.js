@@ -2,6 +2,7 @@ var express = require("express");
 var bodyParser = require("body-parser");
 var jwt = require("jsonwebtoken");
 var mysql = require("mysql");
+var bcrypt = require("bcrypt");
 
 var app = express();
 
@@ -56,13 +57,15 @@ function handleRegister(req, resp) {
     return;
   }
 
+  let hash = bcrypt.hashSync(req.body.password, 10);
+  console.log(hash);
   // Insert Into DB
   connection.query(
     `INSERT INTO user (username, name, email, password, address,status) VALUES ('${
       req.body.username
-    }', '${req.body.name}', '${req.body.email}', '${
-      req.body.password
-    }', '${JSON.stringify(req.body.address)}', 'notAvailable')`,
+    }', '${req.body.name}', '${req.body.email}', '${hash}', '${JSON.stringify(
+      req.body.address
+    )}', 'notAvailable')`,
     function(err, res) {
       if (err) {
         if (err.code == "ER_DUP_ENTRY") {
@@ -92,7 +95,7 @@ function handleLogin(req, resp) {
         resp.status(400).send({ message: "ERROR: Invalid credentials!" });
       } else if (
         res[0].username != req.body.username &&
-        res[0].password != req.body.password
+        !bcrypt.compareSync(req.body.password, res[0].password)
       ) {
         resp.status(400).send({ message: "ERROR: Invalid credentials!" });
       } else {
@@ -355,4 +358,4 @@ app.listen(3000, function() {
   console.log("Serving...(Port: 3000)");
 });
 
-// connection.end();
+//connection.end();

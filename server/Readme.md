@@ -133,8 +133,8 @@ GET /packet/{id}
 
 ```json
 {
-	"username": "benedikt",
-	"name": "Benedikt Ricken",
+	"username": "mustermann01",
+	"name": "Max Mustermann",
 	"email": "example@example.de",
 	"password": "11234",
 	"driver": true,
