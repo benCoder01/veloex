@@ -1,3 +1,7 @@
+# Aufbau
+
+Möchte man den Server starten so benötigt man das Tool docker. Dieses ermöglicht einem einen direkten Start des Servers. Dabei wird gleichzeitig auch eine Datenbank gestartet, die mit phpMyAdmin unter localhost:8080 konfiguriert werden kann.
+
 # Kommunikationsstruktur
 
 POST /register
