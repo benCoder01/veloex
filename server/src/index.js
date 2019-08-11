@@ -3,6 +3,7 @@ var bodyParser = require("body-parser");
 var jwt = require("jsonwebtoken");
 var mysql = require("mysql");
 var bcrypt = require("bcrypt");
+const morgan = require("morgan")
 
 // load .env into device env.
 require("dotenv").config();
@@ -14,7 +15,6 @@ const status = require("./status");
 const db = require("./db")
 
 var app = express();
-
 db.connection.connect();
 const connection = db.connection;
 
@@ -59,12 +59,11 @@ function handleRegister(req, resp) {
       "address"
     ])
   ) {
-    resp.send({ message: "ERROR: Properties are missing!" });
+    resp.status(400).send({ message: "ERROR: Properties are missing!" });
     return;
   }
 
   let hash = bcrypt.hashSync(req.body.password, 10);
-  console.log(hash);
   // Insert Into DB
   connection.query(
     `INSERT INTO user (username, name, email, password, address,status) VALUES ('${
@@ -75,7 +74,7 @@ function handleRegister(req, resp) {
     function(err, res) {
       if (err) {
         if (err.code == "ER_DUP_ENTRY") {
-          resp.status(400).send({ message: "ERROR: Username is not unique" });
+          resp.status(400).send({ message: "ERROR: Username is not unique!" });
         } else {
           resp.status(500).send({ message: err });
         }
@@ -120,6 +119,11 @@ function handleLogin(req, resp) {
 }
 
 app.use(bodyParser.json());
+if (process.env.NODE_ENV !== "test") {
+  app.use(morgan("combined"))
+}
+
+
 
 app.post("/register", handleRegister);
 app.post("/login", handleLogin);
@@ -155,7 +159,19 @@ app.post(
 );
 app.post("/driver/delivered", verifyJWTMiddleware, driver.handleDelivered);
 
-// server start --> Port 3000
-app.listen(3000, function() {
-  console.log("Serving...(Port: 3000)");
+
+let port;
+
+// different ports so that the testing and the docker container dont block ports.
+if (process.env.NODE_ENV === 'test') {
+  port = 3333;
+}else  {
+  port = 3000;
+}
+
+app.listen(port, function() {
+  console.log("Serving...(Port: %s)", port);
 });
+
+// for testing
+module.exports = app;

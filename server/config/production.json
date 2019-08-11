@@ -1,0 +1,8 @@
+{
+    "db": {
+        "host": "mariadb",
+        "user": "root",
+        "database": "production",
+        "port": "3306"
+    }
+}

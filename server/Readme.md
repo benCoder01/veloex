@@ -137,10 +137,10 @@ GET /packet/{id}
 
 ```json
 {
-	"username": "mustermann01",
+	"username": "mustermann",
 	"name": "Max Mustermann",
 	"email": "example@example.de",
-	"password": "11234",
+	"password": "1234",
 	"driver": true,
 	"address": {
 		"nomen": "Max Mustermann",
@@ -159,8 +159,8 @@ GET /packet/{id}
 
 ```json
 {
-	"username": "benedikt3",
-	"password": "11234"
+	"username": "mustermann",
+	"password": "1234"
 }
 ```
 

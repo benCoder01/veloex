@@ -16,6 +16,7 @@ RUN npm install
 COPY wait-for-it.sh wait-for-it.sh
 COPY .env .env
 COPY ./src ./src
+COPY ./config ./config
 
 
 RUN npm install -g nodemon

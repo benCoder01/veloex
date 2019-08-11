@@ -1,9 +1,12 @@
-var mysql = require("mysql");
+const mysql = require("mysql");
+const config = require('config');
+
+console.log(config.get("db.database"))
 
 exports.connection = mysql.createConnection({
-  host: "mariadb",
-  port: "3306",
-  user: process.env.DB_USER,
+  host: config.get("db.host"),
+  port: config.get("db.port"),
+  user: config.get("db.user"),
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE
+  database: config.get("db.database")
 });

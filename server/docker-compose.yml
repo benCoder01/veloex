@@ -17,6 +17,8 @@ services:
       - mariadb
     depends_on:
       - mariadb
+    environment:
+      - NODE_ENV=development
   phpmyadmin:
     depends_on:
       - mariadb
